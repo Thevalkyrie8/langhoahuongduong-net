@@ -1,0 +1,15 @@
+{
+  "domain": "langhoahuongduong.net",
+  "brand": "Làng Hoa Hướng Dương",
+  "shopUrl": "https://langhoahuongduong.vn",
+  "shopUrlAlt": "https://langhoahuongduong.com",
+  "hours": "7:00–21:00 mỗi ngày",
+  "phone": "",
+  "email": "",
+  "address": { "street": "", "locality": "Đà Lạt", "region": "Lâm Đồng", "country": "VN" },
+  "geo": { "lat": "", "lng": "" },
+  "mapUrl": "",
+  "sameAs": [],
+  "gaId": "",
+  "_note": "Điền phone/email/address/geo/mapUrl khi có cơ sở tại Đà Lạt rồi chạy 'npm run build': trang liên hệ và schema LocalBusiness tự bật."
+}
