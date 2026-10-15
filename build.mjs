@@ -1,4 +1,4 @@
-import { mkdirSync, writeFileSync, rmSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, rmSync, readFileSync, cpSync } from 'node:fs';
 import { join } from 'node:path';
 import { articles, categories } from './src/content.mjs';
 
@@ -26,7 +26,7 @@ footer{border-top:1px solid var(--l);margin-top:40px;padding:24px 0;color:var(--
 .crumb{font-size:14px;color:var(--m);margin-top:16px}`;
 write('style.css', css);
 
-const org = { '@type': 'Organization', '@id': `${base}/#org`, name: cfg.brand, url: base, logo: `${base}/logo.svg`, sameAs: [cfg.shopUrl, cfg.shopUrlAlt, ...cfg.sameAs] };
+const org = { '@type': 'Organization', '@id': `${base}/#org`, name: cfg.brand, url: base, logo: `${base}/favicon-512.png`, sameAs: [cfg.shopUrl, cfg.shopUrlAlt, ...cfg.sameAs] };
 if (cfg.email) org.email = cfg.email;
 if (cfg.phone) org.telephone = cfg.phone;
 const local = hasNap ? { '@type': 'Florist', '@id': `${base}/#local`, name: cfg.brand, url: base, telephone: cfg.phone, openingHours: 'Mo-Su 07:00-21:00',
@@ -43,7 +43,7 @@ function page({ path, title, desc, body, graph = [], type = 'website', crumbs = 
 <title>${esc(title)}</title><meta name="description" content="${esc(desc)}"><link rel="canonical" href="${url}">
 <meta name="robots" content="index,follow,max-snippet:-1,max-image-preview:large"><meta name="theme-color" content="#1f7a4d">
 <meta property="og:type" content="${type}"><meta property="og:title" content="${esc(title)}"><meta property="og:description" content="${esc(desc)}"><meta property="og:url" content="${url}"><meta property="og:locale" content="vi_VN"><meta property="og:site_name" content="${cfg.brand}"><meta property="og:image" content="${base}/og.svg">
-<link rel="icon" href="/logo.svg" type="image/svg+xml"><link rel="stylesheet" href="/style.css">
+<link rel="icon" href="/favicon.ico" sizes="48x48"><link rel="icon" href="/favicon-48.png" sizes="48x48" type="image/png"><link rel="icon" href="/favicon-96.png" sizes="96x96" type="image/png"><link rel="icon" href="/favicon-192.png" sizes="192x192" type="image/png"><link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180"><link rel="stylesheet" href="/style.css">
 <script type="application/ld+json">${JSON.stringify(ld)}</script>${ga}</head><body>
 <header><div class="w bar"><a class="logo" href="/">🌻 ${cfg.brand}</a><nav><a href="/cam-nang/">Cẩm nang</a><a href="/hoi-dap/">Hỏi đáp</a><a href="/gioi-thieu/">Giới thiệu</a><a href="/lien-he/">Liên hệ</a></nav></div></header>
 <main class="w">${body}</main>
@@ -107,6 +107,8 @@ const bots = ['GPTBot', 'OAI-SearchBot', 'ChatGPT-User', 'ClaudeBot', 'Claude-Se
 write('robots.txt', `User-agent: *\nAllow: /\n\n${bots.map((b) => `User-agent: ${b}\nAllow: /\n`).join('\n')}\nSitemap: ${base}/sitemap.xml\n`);
 write('llms.txt', `# ${cfg.brand} – Cẩm nang\n\n> Cẩm nang tiếng Việt về chăm cây cảnh, giữ hoa tươi, chọn hoa/quà tặng và mùa hoa Đà Lạt. Cửa hàng bán lẻ: ${cfg.shopUrl}\n\n## Bài viết\n${articles.map((a) => `- [${a.title}](${base}/cam-nang/${a.slug}/): ${a.desc}`).join('\n')}\n\n## Khác\n- [Hỏi đáp](${base}/hoi-dap/)\n- [Giới thiệu](${base}/gioi-thieu/)\n- [Liên hệ](${base}/lien-he/)\n`);
 write('CNAME', cfg.domain + '\n');
+// Favicon set from the sunflower logo (static/): Google Search wants a square icon, multiple of 48px, and /favicon.ico at the root.
+cpSync('static', out, { recursive: true });
 write('.nojekyll', '');
 write('logo.svg', `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><circle cx="32" cy="32" r="30" fill="#1f7a4d"/><text x="32" y="43" font-size="34" text-anchor="middle">🌻</text></svg>`);
 write('og.svg', `<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630"><rect width="1200" height="630" fill="#1f7a4d"/><text x="600" y="300" font-size="72" fill="#fff" text-anchor="middle" font-family="sans-serif" font-weight="700">Làng Hoa Hướng Dương</text><text x="600" y="380" font-size="36" fill="#ffe38a" text-anchor="middle" font-family="sans-serif">Cẩm nang cây cảnh &amp; hoa tươi</text></svg>`);
