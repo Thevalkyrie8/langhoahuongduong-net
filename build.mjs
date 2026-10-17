@@ -1,6 +1,8 @@
 import { mkdirSync, writeFileSync, rmSync, readFileSync, cpSync } from 'node:fs';
 import { join } from 'node:path';
-import { articles, categories } from './src/content.mjs';
+import { articles as coreArticles, categories } from './src/content.mjs';
+import { moreArticles } from './src/content-kieng.mjs';
+const articles = [...coreArticles, ...moreArticles];
 
 const cfg = JSON.parse(readFileSync('site.config.json', 'utf8'));
 const out = 'dist';
@@ -23,6 +25,7 @@ h1{font-size:2rem;line-height:1.25;margin:28px 0 12px}h2{margin-top:32px}
 .cta{background:var(--g);color:#fff;border-radius:12px;padding:20px;margin:36px 0}.cta a{color:#ffe38a;font-weight:700}
 details{background:#fff;border:1px solid var(--l);border-radius:8px;padding:10px 14px;margin:8px 0}summary{cursor:pointer;font-weight:600}
 footer{border-top:1px solid var(--l);margin-top:40px;padding:24px 0;color:var(--m);font-size:15px}
+.w table{border-collapse:collapse;width:100%;margin:16px 0;font-size:15px;display:block;overflow-x:auto}.w th,.w td{border:1px solid var(--l);padding:8px 10px;text-align:left;vertical-align:top}.w th{background:#eef3e6}
 .crumb{font-size:14px;color:var(--m);margin-top:16px}`;
 write('style.css', css);
 
@@ -35,8 +38,8 @@ const local = hasNap ? { '@type': 'Florist', '@id': `${base}/#local`, name: cfg.
 
 const ga = cfg.gaId ? `<script async src="https://www.googletagmanager.com/gtag/js?id=${cfg.gaId}"></script><script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','${cfg.gaId}')</script>` : '';
 
-function page({ path, title, desc, body, graph = [], type = 'website', crumbs = [] }) {
-  const url = `${base}${path}`;
+function page({ path, title, desc, body, graph = [], type = 'website', crumbs = [], canonical }) {
+  const url = canonical || `${base}${path}`;
   const bc = { '@type': 'BreadcrumbList', itemListElement: [{ name: 'Trang chủ', url: base + '/' }, ...crumbs.map((c) => ({ name: c[0], url: base + c[1] }))].map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: c.name, item: c.url })) };
   const ld = { '@context': 'https://schema.org', '@graph': [org, ...(local ? [local] : []), { '@type': 'WebSite', '@id': `${base}/#site`, url: base, name: `${cfg.brand} – Cẩm nang`, inLanguage: 'vi', publisher: { '@id': `${base}/#org` } }, bc, ...graph] };
   write(path + 'index.html', `<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
@@ -67,14 +70,15 @@ page({ path: '/cam-nang/', title: `Cẩm nang cây cảnh & hoa tươi | ${cfg.b
 
 // Articles
 for (const a of articles) {
-  const url = `${base}/cam-nang/${a.slug}/`;
+  const url = a.canonical || `${base}/cam-nang/${a.slug}/`;
   const related = articles.filter((x) => x.slug !== a.slug && x.cat === a.cat).concat(articles.filter((x) => x.slug !== a.slug && x.cat !== a.cat)).slice(0, 3);
-  page({ path: `/cam-nang/${a.slug}/`, title: `${a.title} | ${cfg.brand}`, desc: a.desc, type: 'article', crumbs: [['Cẩm nang', '/cam-nang/'], [a.title, `/cam-nang/${a.slug}/`]],
+  page({ path: `/cam-nang/${a.slug}/`, canonical: a.canonical, title: `${a.title} | ${cfg.brand}`, desc: a.desc, type: 'article', crumbs: [['Cẩm nang', '/cam-nang/'], [a.title, `/cam-nang/${a.slug}/`]],
     graph: [
       { '@type': 'Article', '@id': url + '#article', headline: a.title, description: a.desc, inLanguage: 'vi', datePublished: today, dateModified: today, mainEntityOfPage: url, image: `${base}/og.svg`, author: { '@id': `${base}/#org` }, publisher: { '@id': `${base}/#org` } },
       { '@type': 'FAQPage', mainEntity: a.faq.map(([q, an]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: an } })) }],
     body: `${crumbHtml([['Cẩm nang', '/cam-nang/'], [a.cat]])}<article><h1>${a.title}</h1><p class="tag">${a.cat} · Cập nhật ${today} · ${cfg.brand}</p>
 <div class="ans"><strong>Trả lời nhanh:</strong> ${a.answer}</div>
+${a.intro || ''}
 ${a.sections.map(([h, b]) => `<h2>${h}</h2>${b}`).join('')}
 <h2>Câu hỏi thường gặp</h2>${a.faq.map(([q, an]) => `<details><summary>${q}</summary><p>${an}</p></details>`).join('')}</article>
 ${cta}<h2>Đọc thêm</h2><ul class="grid">${related.map(card).join('')}</ul>` });
